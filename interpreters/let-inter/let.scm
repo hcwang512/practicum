@@ -33,6 +33,7 @@
     (expression ("empty-list") empty-list-exp)
     (expression ("null?" "(" expression ")") null?-exp)
     (expression ("list" "(" (separated-list expression ",")")") list-exp)
+    (expression ("cond" (arbno expression "==>" expression) "end" ) cond-exp)
     (expression ("if" expression "then" expression "else" expression) if-exp)
     (expression ("let" identifier "=" expression "in" expression) let-exp)
     ))
@@ -87,6 +88,9 @@
     (exp expression?))
   (list-exp
     (args (list-of expression?)))
+  (cond-exp
+    (conds (list-of expression?))
+    (acts (list-of expression?)))
   (less-exp
     (exp1 expression?)
     (exp2 expression?))
@@ -157,6 +161,13 @@
   (lambda (env)
     (lambda (elem)
       (value-of elem env))))
+
+(define cond-val
+  (lambda (conds acts env)
+    (cond
+      ((null? conds) (error 'cond-val "No conditions got into"))
+      ((expval->bool (value-of (car conds) env)) (value-of (car acts) env))
+      (else (cond-val (cdr conds) (cdr acts) env)))))
 
 (define expval-extractor-error
   (lambda (variant value)
@@ -257,6 +268,9 @@
        (list-exp (args)
             (list-val (map (apply-elem env) args)))
 
+       (cond-exp (conds acts)
+            (cond-val conds acts env))
+
 	   (if-exp (exp1 exp2 exp3)
 		   (let ((val1 (value-of exp1 env)))
 		     (if (expval->bool val1)
@@ -316,3 +330,6 @@
 ;(bool-val #f)
 
 (run "list(1,2,3)")
+
+(run "cond less?(1, 2) ==> 2 end") 
+;(num-val 2)
