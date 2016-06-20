@@ -19,6 +19,9 @@
     (expression (identifier) var-exp)
     (expression (number) const-exp)
     (expression ("-" "(" expression "," expression ")") diff-exp)
+    (expression ("+" "(" expression "," expression ")") add-exp)
+    (expression ("*" "(" expression "," expression ")") mult-exp)
+    (expression ("/" "(" expression "," expression ")") div-exp)
     (expression ("minus" "(" expression ")") minus-exp)
     (expression ("zero?" "(" expression ")") zero?-exp)
     (expression ("if" expression "then" expression "else" expression) if-exp)
@@ -45,6 +48,15 @@
    (false-exp expression?))
   (minus-exp
    (body-exp expression?))
+  (add-exp
+    (exp1 expression?)
+    (exp2 expression?))
+  (mult-exp
+    (exp1 expression?)
+    (exp2 expression?))
+  (div-exp
+    (exp1 expression?)
+    (exp2 expression?))
   (diff-exp
    (exp1 expression?)
    (exp2 expression?))
@@ -110,7 +122,28 @@
 			 (num-val
 			  (- num1 num2)))))
 
-	   (zero?-exp (exp1)
+       (add-exp (exp1 exp2)
+                (let ((val1 (value-of exp1 env))
+                      (val2 (value-of exp2 env)))
+                  (let ((num1 (expval->num val1))
+                        (num2 (expval->num val2)))
+                (num-val (+ num1 num2)))))
+
+       (mult-exp (exp1 exp2)
+                (let ((val1 (value-of exp1 env))
+                      (val2 (value-of exp2 env)))
+                  (let ((num1 (expval->num val1))
+                        (num2 (expval->num val2)))
+                (num-val (* num1 num2)))))
+
+       (div-exp (exp1 exp2)
+                (let ((val1 (value-of exp1 env))
+                      (val2 (value-of exp2 env)))
+                  (let ((num1 (expval->num val1))
+                        (num2 (expval->num val2)))
+                (num-val (/ num1 num2)))))
+	   
+       (zero?-exp (exp1)
 		      (let ((val1 (value-of exp1 env)))
 			(let ((num1 (expval->num val1)))
 			  (if (zero? num1)
@@ -147,3 +180,12 @@
 ;(num-val -4)
 
 (run  "if zero?(-(11,11)) then minus(3) else minus(4)")
+
+(run "+(1,2)")
+;(num-val 3)
+(run "+(+1,2), 3)")
+;(num-val 6)
+(run "*(2,3)")
+;(num-val 6)
+(run "/(1,2)")
+;(num-val 0.5)
