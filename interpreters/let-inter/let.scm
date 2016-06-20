@@ -174,9 +174,14 @@
       ((expval->bool (value-of (car conds) env)) (value-of (car acts) env))
       (else (cond-val (cdr conds) (cdr acts) env)))))
 
+;the order of the vars in env will affect the result
+;(define extends-env
+  ;(lambda (idens vals env)
+    ;(if (null? idens) env (extends-env (cdr idens) (cdr vals) (extend-env (car idens) (value-of (car vals) env) env)))))
+
 (define extends-env
   (lambda (idens vals env)
-    (if (null? idens) env (extends-env (cdr idens) (cdr vals) (extend-env (car idens) (value-of (car vals) env) env)))))
+    (if (null? idens) env (extend-env (car idens) (value-of (car vals) env) (extends-env (cdr idens) (cdr vals) env)))))
 
 (define expval-extractor-error
   (lambda (variant value)
