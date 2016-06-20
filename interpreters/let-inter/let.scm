@@ -36,6 +36,7 @@
     (expression ("cond" (arbno expression "==>" expression) "end" ) cond-exp)
     (expression ("if" expression "then" expression "else" expression) if-exp)
     (expression ("let" identifier "=" expression "in" expression) let-exp)
+    (expression ("let*" (arbno identifier "=" expression) "in" expression) let*-exp)
     ))
 
 ;;;;;;;;;;;;;;;; sllgen boilerplate ;;;;;;;;;;;;;;;;
@@ -97,7 +98,11 @@
   (let-exp
    (var symbol?)
    (value expression?)
-   (body expression?)))
+   (body expression?))
+  (let*-exp
+    (idens (list-of symbols?))
+    (vals (list-of expression?))
+    (body expression?)))
 
 ;;; an expressed value is either a number, a boolean or a procval.
 (define-datatype expval expval?
@@ -168,6 +173,10 @@
       ((null? conds) (error 'cond-val "No conditions got into"))
       ((expval->bool (value-of (car conds) env)) (value-of (car acts) env))
       (else (cond-val (cdr conds) (cdr acts) env)))))
+
+(define extends-env
+  (lambda (idens vals env)
+    (if (null? idens) env (extends-env (cdr idens) (cdr vals) (extend-env (car idens) (value-of (car vals) env) env)))))
 
 (define expval-extractor-error
   (lambda (variant value)
@@ -284,6 +293,8 @@
 		    (let ((val1 (value-of exp1 env)))
 		      (value-of body
 				(extend-env var val1 env))))
+       (let*-exp (idens vals body)
+            (value-of body (extends-env idens vals env)))
 	   )))
 
 
@@ -333,3 +344,6 @@
 
 (run "cond less?(1, 2) ==> 2 end") 
 ;(num-val 2)
+
+(run "let* x=1 y=2 in -(x, y)")
+;(num-val -1)
