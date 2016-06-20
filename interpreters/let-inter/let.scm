@@ -23,6 +23,9 @@
     (expression ("*" "(" expression "," expression ")") mult-exp)
     (expression ("/" "(" expression "," expression ")") div-exp)
     (expression ("minus" "(" expression ")") minus-exp)
+    (expression ("equal?" "(" expression "," expression ")") equal-exp)
+    (expression ("greater?" "(" expression "," expression ")") greater-exp)
+    (expression ("less?" "(" expression "," expression ")") less-exp)
     (expression ("zero?" "(" expression ")") zero?-exp)
     (expression ("if" expression "then" expression "else" expression) if-exp)
     (expression ("let" identifier "=" expression "in" expression) let-exp)
@@ -60,6 +63,15 @@
   (diff-exp
    (exp1 expression?)
    (exp2 expression?))
+  (equal-exp
+    (exp1 expression?)
+    (exp2 expression?))
+  (greater-exp
+    (exp1 expression?)
+    (exp2 expression?))
+  (less-exp
+    (exp1 expression?)
+    (exp2 expression?))
   (let-exp
    (var symbol?)
    (value expression?)
@@ -143,6 +155,27 @@
                         (num2 (expval->num val2)))
                 (num-val (/ num1 num2)))))
 	   
+       (equal-exp (exp1 exp2)
+                (let ((val1 (value-of exp1 env))
+                      (val2 (value-of exp2 env)))
+                  (let ((num1 (expval->num val1))
+                        (num2 (expval->num val2)))
+                (bool-val (= num1 num2)))))
+       
+       (greater-exp (exp1 exp2)
+                (let ((val1 (value-of exp1 env))
+                      (val2 (value-of exp2 env)))
+                  (let ((num1 (expval->num val1))
+                        (num2 (expval->num val2)))
+                (bool-val (> num1 num2)))))
+
+       (less-exp (exp1 exp2)
+                (let ((val1 (value-of exp1 env))
+                      (val2 (value-of exp2 env)))
+                  (let ((num1 (expval->num val1))
+                        (num2 (expval->num val2)))
+                (bool-val (< num1 num2)))))
+
        (zero?-exp (exp1)
 		      (let ((val1 (value-of exp1 env)))
 			(let ((num1 (expval->num val1)))
@@ -183,9 +216,16 @@
 
 (run "+(1,2)")
 ;(num-val 3)
-(run "+(+1,2), 3)")
+(run "+(+(1,2), 3)")
 ;(num-val 6)
 (run "*(2,3)")
 ;(num-val 6)
 (run "/(1,2)")
 ;(num-val 0.5)
+
+(run "equal?(1, 1)")
+;(bool-val #t)
+(run "greater?(1,2)")
+;(bool-val #f)
+(run "less?(1,2)")
+;(bool-val $t)
