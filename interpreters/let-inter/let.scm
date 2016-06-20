@@ -32,6 +32,7 @@
     (expression ("cdr" "(" expression ")") cdr-exp)
     (expression ("empty-list") empty-list-exp)
     (expression ("null?" "(" expression ")") null?-exp)
+    (expression ("list" "(" (separated-list expression ",")")") list-exp)
     (expression ("if" expression "then" expression "else" expression) if-exp)
     (expression ("let" identifier "=" expression "in" expression) let-exp)
     ))
@@ -84,6 +85,8 @@
   (empty-list-exp)
   (null?-exp
     (exp expression?))
+  (list-exp
+    (args (list-of expression?)))
   (less-exp
     (exp1 expression?)
     (exp2 expression?))
@@ -144,6 +147,16 @@
     (cases expval v
            (empty-list-val () (bool-val #t))
            (else (bool-val #f)))))
+
+(define list-val
+  (lambda (args)
+    (if (null? args) (empty-list-val)
+      (pair-val (car args) (list-val (cdr args))))))
+
+(define apply-elem
+  (lambda (env)
+    (lambda (elem)
+      (value-of elem env))))
 
 (define expval-extractor-error
   (lambda (variant value)
@@ -241,6 +254,9 @@
        (cdr-exp (exp1)
             (expval-cdr (value-of exp1 env)))
 
+       (list-exp (args)
+            (list-val (map (apply-elem env) args)))
+
 	   (if-exp (exp1 exp2 exp3)
 		   (let ((val1 (value-of exp1 env)))
 		     (if (expval->bool val1)
@@ -298,3 +314,5 @@
 ;(bool-val #t)
 (run "null?(cons(1,2))")
 ;(bool-val #f)
+
+(run "list(1,2,3)")
