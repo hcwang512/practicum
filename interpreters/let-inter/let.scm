@@ -27,6 +27,11 @@
     (expression ("greater?" "(" expression "," expression ")") greater-exp)
     (expression ("less?" "(" expression "," expression ")") less-exp)
     (expression ("zero?" "(" expression ")") zero?-exp)
+    (expression ("cons" "(" expression "," expression ")") cons-exp)
+    (expression ("car" "(" expression ")") car-exp)
+    (expression ("cdr" "(" expression ")") cdr-exp)
+    (expression ("empty-list") empty-list-exp)
+    (expression ("null?" "(" expression ")") null?-exp)
     (expression ("if" expression "then" expression "else" expression) if-exp)
     (expression ("let" identifier "=" expression "in" expression) let-exp)
     ))
@@ -69,6 +74,16 @@
   (greater-exp
     (exp1 expression?)
     (exp2 expression?))
+  (cons-exp
+    (exp1 expression?)
+    (exp2 expression?))
+  (car-exp
+    (exp expression?))
+  (cdr-exp
+    (body expression?))
+  (empty-list-exp)
+  (null?-exp
+    (exp expression?))
   (less-exp
     (exp1 expression?)
     (exp2 expression?))
@@ -82,7 +97,11 @@
   (num-val
    (value number?))
   (bool-val
-   (boolean boolean?)))
+   (boolean boolean?))
+  (pair-val
+    (car expval?)
+    (cdr expval?))
+  (empty-list-val))
 
 ;;; extractors:
 
@@ -101,6 +120,30 @@
     (cases expval v
            (bool-val (bool) bool)
            (else (expval-extractor-error 'bool v)))))
+
+(define expval->pair
+  (lambda (v)
+    (cases expval v
+           (pair-val (car cdr) (cons car cdr))
+           (else (expval-extractor-error 'pair v)))))
+
+(define expval-car
+  (lambda (v)
+    (cases expval v
+           (pair-val (car cdr) car)
+           (else (expval-extractor-error 'car v)))))
+
+(define expval-cdr
+  (lambda (v)
+    (cases expval v
+           (pair-val (car cdr) cdr)
+           (else (expval-extractor-error 'cdr v)))))
+
+(define expval-null?
+  (lambda (v)
+    (cases expval v
+           (empty-list-val () (bool-val #t))
+           (else (bool-val #f)))))
 
 (define expval-extractor-error
   (lambda (variant value)
@@ -183,6 +226,21 @@
 			      (bool-val #t)
 			      (bool-val #f)))))
 
+       (empty-list-exp () (empty-list-val))
+       (null?-exp (exp1)
+            (expval-null? (value-of exp1 env)))
+
+       (cons-exp (exp1 exp2)
+            (let ((val1 (value-of exp1 env))
+                  (val2 (value-of exp2 env)))
+              (pair-val val1 val2)))
+
+       (car-exp (exp1)
+            (expval-car (value-of exp1 env)))
+
+       (cdr-exp (exp1)
+            (expval-cdr (value-of exp1 env)))
+
 	   (if-exp (exp1 exp2 exp3)
 		   (let ((val1 (value-of exp1 env)))
 		     (if (expval->bool val1)
@@ -229,3 +287,14 @@
 ;(bool-val #f)
 (run "less?(1,2)")
 ;(bool-val $t)
+
+(run "cons(1,2)")
+;(pair-val (num-val 1) (num-val 2))
+(run "car(cons(1,2))")
+;(num-val 1)
+(run "cdr(cons(1,2))")
+;(num-val 2)
+(run "null?(empty-list)")
+;(bool-val #t)
+(run "null?(cons(1,2))")
+;(bool-val #f)
