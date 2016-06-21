@@ -37,6 +37,7 @@
     (expression ("if" expression "then" expression "else" expression) if-exp)
     (expression ("let" identifier "=" expression "in" expression) let-exp)
     (expression ("let*" (arbno identifier "=" expression) "in" expression) let*-exp)
+    (expression ("unpack" (arbno identifier) "=" expression "in" expression) unpack-exp)
     ))
 
 ;;;;;;;;;;;;;;;; sllgen boilerplate ;;;;;;;;;;;;;;;;
@@ -102,6 +103,10 @@
   (let*-exp
     (idens (list-of symbols?))
     (vals (list-of expression?))
+    (body expression?))
+  (unpack-exp
+    (vars (list-of symbols?))
+    (vals expression?)
     (body expression?)))
 
 ;;; an expressed value is either a number, a boolean or a procval.
@@ -182,6 +187,13 @@
 (define extends-env
   (lambda (idens vals env)
     (if (null? idens) env (extend-env (car idens) (value-of (car vals) env) (extends-env (cdr idens) (cdr vals) env)))))
+
+(define unpack-values
+  (lambda (vars val env)
+    (cond
+      ((null? vars) env)
+      ((null? val) (error "Not enough params to unpack"))
+      (else (unpack-values (cdr vars) (expval-cdr val) (extend-env (car vars) (expval-car val) env))))))
 
 (define expval-extractor-error
   (lambda (variant value)
@@ -300,6 +312,8 @@
 				(extend-env var val1 env))))
        (let*-exp (idens vals body)
             (value-of body (extends-env idens vals env)))
+       (unpack-exp (vars val body)
+            (value-of body (unpack-values vars (value-of val env) env)))
 	   )))
 
 
@@ -351,4 +365,7 @@
 ;(num-val 2)
 
 (run "let* x=1 y=2 in -(x, y)")
+;(num-val -1)
+
+(run "unpack x y=cons(1,cons(2,empty-list)) in -(x,y)") 
 ;(num-val -1)
