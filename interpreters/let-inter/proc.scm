@@ -23,6 +23,7 @@
     (expression (identifier) var-exp)
     (expression ("let" identifier "=" expression "in" expression) let-exp)
     (expression ("proc" "(" identifier ")" expression) proc-exp)
+    (expression ("letproc" identifier "=" "(" identifier ")" expression "in" expression) let-proc-exp)
     (expression ("(" expression expression ")") call-exp)
     ))
 
@@ -57,6 +58,11 @@
   (proc-exp
     (var identifier?)
     (body expression?))
+  (let-proc-exp
+    (name identifier?)
+    (para identifier?)
+    (body expression?)
+    (let-body expression?))
   (call-exp
    (rator expression?)
    (rand expression?)))
@@ -156,6 +162,11 @@
 				(extend-env var val1 env))))
        (proc-exp (var body)
             (proc-val (procedure var body env)))
+
+       (let-proc-exp (name param body let-body)
+            (let ((proc (proc-val (procedure param body env))))
+              (value-of let-body (extend-env name proc env))))
+
 	   (call-exp (rator rand)
 		     (let ((proc (expval->proc (value-of rator env)))
 			   (arg (value-of rand env)))
@@ -168,7 +179,10 @@
   (lambda (string)
     (value-of-program (scan&parse string))))
 
-;;(run "(proc(x) -(x,1)  30)")
+(run "(proc(x) -(x,1)  30)")
 ;(num-val 29)
-;(run "let x = 3 in -(x,1)")
+(run "let x = 3 in -(x,1)")
 ;(num-val 2)
+
+(run "letproc f = (x) -(x, 1) in (f 30)")
+;(num-val 29)
