@@ -24,6 +24,7 @@
     (expression ("let" identifier "=" expression "in" expression) let-exp)
     (expression ("proc" "(" (separated-list identifier ",") ")" expression) proc-exp)
     (expression ("letproc" identifier "=" "(" (separated-list identifier ",") ")" expression "in" expression) let-proc-exp)
+    (expression ("letrec" identifier "(" (separated-list identifier ",") ")" "=" expression "in" expression) letrec-exp)
     (expression ("(" expression (arbno expression) ")") call-exp)
     ))
 
@@ -61,6 +62,11 @@
   (let-proc-exp
     (name identifier?)
     (paras (list-of symbol?))
+    (body expression?)
+    (let-body expression?))
+  (letrec-exp
+    (name identifier?)
+    (params (list-of symbol?))
     (body expression?)
     (let-body expression?))
   (call-exp
@@ -124,6 +130,26 @@
       ((null? vars) env)
       (else (extend-env-inter (cdr vars) (cdr vals) (extend-env (car vars) (car vals ) env))))))
 
+(define extend-proc-env
+  (lambda (a-proc new-env)
+    (cases proc a-proc
+      (procedure (vars body env) (proc-val (procedure vars body new-env))))))
+(define extend-env-rec
+  (lambda (name params body env)
+    (extend-env name (proc-val (procedure params body env)) env)))
+
+(define apply-env-rec
+  (lambda (env search-sym)
+    (if (null? env) (error "No binding for ~s" search-sym)
+      (let ((sym (extended-env-record->sym env))
+            (val (extended-env-record->val env))
+            (old-env (extended-env-record->old-env env)))
+        (if (eqv? search-sym sym)
+          (cases expval val
+                 (proc-val (proc) (extend-proc-env proc env))
+                 (else val))
+          (apply-env-rec old-env search-sym))))))
+
 ;; apply-procedure : Proc * ExpVal -> ExpVal
 ;; Page: 79
 (define apply-procedure
@@ -145,7 +171,7 @@
   (lambda (exp env)
     (cases expression exp
 	   (const-exp (num) (num-val num))
-	   (var-exp (var) (apply-env env var))
+	   (var-exp (var) (apply-env-rec env var))
 	   (diff-exp (exp1 exp2)
 		     (let ((val1 (value-of exp1 env))
 			   (val2 (value-of exp2 env)))
@@ -178,6 +204,9 @@
             (let ((proc (proc-val (procedure params body env))))
               (value-of let-body (extend-env name proc env))))
 
+       (letrec-exp (name params body let-body)
+            (value-of let-body (extend-env-rec name params body env)))
+
 	   (call-exp (rator rands)
 		     (let ((proc (expval->proc (value-of rator env)))
 			   (args (map (apply-elem env) rands )))
@@ -200,3 +229,6 @@
 ;
 (run "(proc(x, y) -(x, y) 10 20)") 
 ;(num-val -10)
+
+ (run "letrec time(x, y)  = if zero?(x) then 0 else -((time -(x,1)  y), -(0, y)) in (time 3 2)")
+;(num-val 6)
