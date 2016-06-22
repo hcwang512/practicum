@@ -22,9 +22,9 @@
     (expression ("if" expression "then" expression "else" expression) if-exp)
     (expression (identifier) var-exp)
     (expression ("let" identifier "=" expression "in" expression) let-exp)
-    (expression ("proc" "(" identifier ")" expression) proc-exp)
-    (expression ("letproc" identifier "=" "(" identifier ")" expression "in" expression) let-proc-exp)
-    (expression ("(" expression expression ")") call-exp)
+    (expression ("proc" "(" (separated-list identifier ",") ")" expression) proc-exp)
+    (expression ("letproc" identifier "=" "(" (separated-list identifier ",") ")" expression "in" expression) let-proc-exp)
+    (expression ("(" expression (arbno expression) ")") call-exp)
     ))
 
   ;;;;;;;;;;;;;;;; sllgen boilerplate ;;;;;;;;;;;;;;;;
@@ -56,16 +56,16 @@
    (vals (list-of expression?))
    (body expression?))
   (proc-exp
-    (var identifier?)
+    (vars (list-of symbols?))
     (body expression?))
   (let-proc-exp
     (name identifier?)
-    (para identifier?)
+    (paras (list-of symbol?))
     (body expression?)
     (let-body expression?))
   (call-exp
    (rator expression?)
-   (rand expression?)))
+   (rands (list-of expression?))))
 
 
 ;;; an expressed value is either a number, a boolean or a procval.
@@ -81,7 +81,7 @@
 ;; procedure : Var * Exp * Env -> Proc
 (define-datatype proc proc?
   (procedure
-   (var symbol?)
+   (vars (list-of symbol?))
    (body expression?)
    (env environment?)))
 
@@ -113,13 +113,24 @@
     (error 'expval-extractors "Looking for a ~s, found ~s"
 		variant value)))
 
+(define apply-elem
+  (lambda (env)
+    (lambda (elem)
+      (value-of elem env))))
+
+(define extend-env-inter
+  (lambda (vars vals env)
+    (cond
+      ((null? vars) env)
+      (else (extend-env-inter (cdr vars) (cdr vals) (extend-env (car vars) (car vals ) env))))))
+
 ;; apply-procedure : Proc * ExpVal -> ExpVal
 ;; Page: 79
 (define apply-procedure
-  (lambda (proc1 val)
+  (lambda (proc1 vals)
     (cases proc proc1
-           (procedure (var body saved-env)
-                      (value-of body (extend-env var val saved-env))))))
+           (procedure (vars body saved-env)
+                      (value-of body (extend-env-inter vars vals saved-env))))))
 
 ;;;;;;;;;;;;;;;; the interpreter ;;;;;;;;;;;;;;;;
 ;; value-of-program : Program -> ExpVal
@@ -160,17 +171,17 @@
 		    (let ((val1 (value-of exp1 env)))
 		      (value-of body
 				(extend-env var val1 env))))
-       (proc-exp (var body)
-            (proc-val (procedure var body env)))
+       (proc-exp (vars body)
+            (proc-val (procedure vars body env)))
 
-       (let-proc-exp (name param body let-body)
-            (let ((proc (proc-val (procedure param body env))))
+       (let-proc-exp (name params body let-body)
+            (let ((proc (proc-val (procedure params body env))))
               (value-of let-body (extend-env name proc env))))
 
-	   (call-exp (rator rand)
+	   (call-exp (rator rands)
 		     (let ((proc (expval->proc (value-of rator env)))
-			   (arg (value-of rand env)))
-		       (apply-procedure proc arg)))
+			   (args (map (apply-elem env) rands )))
+		       (apply-procedure proc args)))
 	   )))
 
 
@@ -186,3 +197,6 @@
 
 (run "letproc f = (x) -(x, 1) in (f 30)")
 ;(num-val 29)
+;
+(run "(proc(x, y) -(x, y) 10 20)") 
+;(num-val -10)
