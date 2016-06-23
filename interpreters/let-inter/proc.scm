@@ -38,17 +38,17 @@
   (sllgen:make-string-parser the-lexical-spec the-grammar))
 
 ;;; datetype ;;;
-(define-datatype environment environment?
-  (empty-env)
-  (extend-env
-    (var symbol?)
-    (val expval?)
-    (saved-env environment?))
-  (extend-env-rec
-    (names (list-of symbol?))
-    (params (list-of (list-of symbol?)))
-    (bodys (list-of expression?))
-    (saved-env environment?)))
+;(define-datatype environment environment?
+  ;(empty-env)
+  ;(extend-env
+    ;(var symbol?)
+    ;(val expval?)
+    ;(saved-env environment?))
+  ;(extend-env-rec
+    ;(names (list-of symbol?))
+    ;(params (list-of (list-of symbol?)))
+    ;(bodys (list-of expression?))
+    ;(saved-env environment?)))
 
 ;;; an expressed value is either a number, a boolean or a procval.
 (define-datatype expval expval?
@@ -87,8 +87,9 @@
 (define expval->proc
   (lambda (v)
     (cases expval v
-	   (proc-val (proc) proc)
-	   (else (expval-extractor-error 'proc v)))))
+       (proc-val (proc) proc)
+	   (else (expval-extractor-error 'proc v))))
+    )
 
 (define expval-extractor-error
   (lambda (variant value)
@@ -111,17 +112,57 @@
     (cond
       ((null? vars) #f)
       ((eqv? (car vars) search-sym) (proc-val (procedure (car params-list) (car bodys) env)))
-      (else (search-env-rec search-sym (cdr vars) (cdr params-list) (cdr bodys) saved-env env)))
-      ))
+      (else (search-env-rec search-sym (cdr vars) (cdr params-list) (cdr bodys) saved-env env)))))
+(define extend-env
+  (lambda (var val saved-env)
+    (list (lambda (search-sym)
+      (cond
+        ((eqv? var search-sym) val)
+        ((empty-env? saved-env) (error "No bindings for ~s" search-sym))
+        (else (apply-env saved-env search-sym))))
+          (lambda () #f)
+          (lambda () #t))))
+
+(define extend-env-rec
+  (lambda (names params-list bodys saved-env)
+    (list (lambda (search-sym)
+      (cond
+        ((eq? #f (search-env-rec search-sym names params-list bodys saved-env (extend-env-rec names params-list bodys saved-env))) (apply-env saved-env search-sym))
+        (else (search-env-rec search-sym names params-list bodys saved-env (extend-env-rec names params-list bodys saved-env))
+              )))
+          (lambda () #f)
+          (lambda () #t))))
+
+(define empty-env
+  (lambda ()
+    (list (lambda (search-val)
+      (error "No such bingdings" search-val))
+          (lambda () #t)
+          (lambda () #t))))
+
+(define empty-env? empty-env-record?)
+(define empty-env-record?
+  (lambda (env)
+    ((cadr env))))
+
+(define environment?
+  (lambda (x)
+    ((caddr x))))
 (define apply-env
   (lambda (env search-sym)
-    (cases environment env
-      (empty-env () (error "No bindings for ~s" search-sym))
-      (extend-env (var val saved-env)
-        (if (eqv? var search-sym) val (apply-env saved-env search-sym)))
-      (extend-env-rec (names params-list bodys saved-env)
-        (if (eq? #f (search-env-rec search-sym names params-list bodys saved-env env)) (apply-env saved-env search-sym) 
-          (search-env-rec search-sym names params-list bodys saved-env env))))))
+    ((car env) search-sym)))
+;(define apply-env
+  ;(lambda (env search-sym)
+    ;(env search-sym)))
+;(define apply-env
+  ;(lambda (env search-sym)
+    ;(cases environment env
+      ;(empty-env () (error "No bindings for ~s" search-sym))
+      ;(extend-env (var val saved-env)
+        ;(if (eqv? var search-sym) val (apply-env saved-env search-sym)))
+      ;(extend-env-rec (names params-list bodys saved-env)
+        ;(if (eq? #f (search-env-rec search-sym names params-list bodys saved-env env)) (apply-env saved-env search-sym) 
+          ;(search-env-rec search-sym names params-list bodys saved-env env))))))
 
 
 ;; apply-procedure : Proc * ExpVal -> ExpVal
@@ -131,6 +172,7 @@
     (cases proc proc1
            (procedure (vars body saved-env)
                       (value-of body (extend-env-inter vars vals saved-env))))))
+    
 
 ;;;;;;;;;;;;;;;; the interpreter ;;;;;;;;;;;;;;;;
 ;; value-of-program : Program -> ExpVal
