@@ -25,10 +25,6 @@
      zero?-exp)
 
     (expression
-     ("less?" "(" expression "," expression ")")
-     less?-exp)
-
-    (expression
      ("if" expression "then" expression "else" expression)
      if-exp)
 
@@ -41,6 +37,9 @@
     (expression
      ("proc" "(" identifier ")" expression)
      proc-exp)
+
+    (expression
+      ("cond" (arbno expression "==>" expression) "end") cond-exp)
 
     (expression
      ("(" expression expression ")")
@@ -152,6 +151,12 @@
        (num-val 10)                     ; was x
        (empty-nameless-env))))))
 
+(define cond-val
+  (lambda (conds acts env)
+    (cond
+      ((null? conds) (error "No match conds for cond exp"))
+      ((expval->bool (value-of (car conds) env)) (value-of (car acts) env))
+      (cond-val (cdr conds) (cdr acts) env))))
 
 (define value-of-translation
   (lambda (pgm)
@@ -187,6 +192,8 @@
                         (if (zero? val1)
                             (bool-val #t)
                             (bool-val #f))))
+           (cond-exp (conds acts)
+             (cond-val conds acts nameless-env))
 
            (if-exp (exp0 exp1 exp2)
                    (if (expval->bool (value-of exp0 nameless-env))
@@ -259,6 +266,11 @@
 		    (translation-of exp2 senv)
 		    (translation-of exp3 senv)))
 
+       (cond-exp (conds acts)
+            (cond-exp
+              (map (lambda (x) (translation-of x senv)) conds)
+              (map (lambda (x) (translation-of x senv)) acts)))
+
 	   (var-exp (var)
 		    (nameless-var-exp
 		     (apply-senv senv var)))
@@ -330,4 +342,5 @@
             t4m = proc (f) proc(x) if zero?(x) then 0 else -((f -(x,1)),-4)
              in let times4 = (fix t4m)
          in (times4 3)")
-
+(run "cond zero?(0) ==> 1 end")
+;(num-val 1)
