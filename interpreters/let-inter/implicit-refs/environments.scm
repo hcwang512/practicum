@@ -2,7 +2,7 @@
   
   (require "data-structures.scm")
   (require "store.scm")
-  (provide init-env empty-env extend-env apply-env)
+  (provide init-env empty-env extend-env apply-env extend-env*)
 
 ;;;;;;;;;;;;;;;; initial environment ;;;;;;;;;;;;;;;;
   
@@ -43,6 +43,11 @@
                     (list-ref p-bodies n)
                     env)))
               (apply-env saved-env search-var)))))))
+
+  (define extend-env*
+    (lambda (vars exps env)
+      (if (null? vars) env
+        (extend-env* (cdr vars) (cdr exps) (extend-env (car vars) (car exps) env)))))
 
   ;; location : Sym * Listof(Sym) -> Maybe(Int)
   ;; (location sym syms) returns the location of sym in syms or #f is

@@ -132,5 +132,7 @@ let f = proc (x) proc (y)
 in ((f 44) 33)"
 	12)
       
+      (multi-let-test "
+let x=1 y=2 in -(x, y)" -1)
       ))
   )
