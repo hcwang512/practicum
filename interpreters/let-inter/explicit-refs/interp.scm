@@ -29,6 +29,11 @@
         (a-program (exp1)
           (value-of exp1 (init-env))))))
 
+  (define list-val
+    (lambda (args)
+      (if (null? args) (empty-list-val)
+        (pair-val (car args) (list-val (cdr args))))))
+
   ;; value-of : Exp * Env -> ExpVal
   ;; Page: 113
   (define value-of
@@ -82,6 +87,12 @@
         (letrec-exp (p-names b-vars p-bodies letrec-body)
           (value-of letrec-body
             (extend-env-rec* p-names b-vars p-bodies env)))
+
+        (list-exp (exps)
+          (list-val (map (lambda (x) (value-of x env)) exps)))
+
+        (empty-list-exp ()
+          (empty-list-val))
 
         (begin-exp (exp1 exps)
           (letrec 

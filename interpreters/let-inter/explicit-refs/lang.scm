@@ -54,6 +54,13 @@
            "in" expression)
         letrec-exp)
       
+      (expression
+        ("list"
+         "(" (separated-list expression ",") ")") list-exp)
+
+      (expression
+        ("empty-list") empty-list-exp)
+
       ;; new for explicit-refs
 
       (expression

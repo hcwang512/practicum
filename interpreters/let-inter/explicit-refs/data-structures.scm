@@ -19,6 +19,10 @@
       (proc proc?))
     (ref-val
       (ref reference?))
+    (pair-val
+      (car expval?)
+      (cdr expval?))
+    (empty-list-val)
     )
 
 ;;; extractors:

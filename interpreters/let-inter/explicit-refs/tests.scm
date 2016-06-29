@@ -158,6 +158,13 @@ in begin
     deref(deref(x))
    end"
    11)
-      
+
+ (list-test "
+let x=4
+in list(x, -(x, 1), -(x, -1))" (4 3 5))
+
+(empty-list-test "
+let x=4 in list()" ())
+
       ))
   )
