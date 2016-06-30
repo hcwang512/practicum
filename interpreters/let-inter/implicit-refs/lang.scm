@@ -41,16 +41,16 @@
        let-exp)   
 
       (expression
-       ("proc" "(" identifier ")" expression)
+       ("proc" "(" (arbno identifier) ")" expression)
        proc-exp)
 
       (expression
-       ("(" expression expression ")")
+       ("(" expression (arbno expression) ")")
        call-exp)
 
       (expression
         ("letrec"
-          (arbno identifier "(" identifier ")" "=" expression)
+          (arbno identifier "(" (arbno identifier) ")" "=" expression)
            "in" expression)
         letrec-exp)
       

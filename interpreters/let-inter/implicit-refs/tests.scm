@@ -134,5 +134,8 @@ in ((f 44) 33)"
       
       (multi-let-test "
 let x=1 y=2 in -(x, y)" -1)
+
+      (multi-argument-proc "
+let f=proc(x y) -(x, y) in (f 2 3)" -1)
       ))
   )
