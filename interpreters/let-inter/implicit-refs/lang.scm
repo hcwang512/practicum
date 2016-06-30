@@ -41,6 +41,9 @@
        let-exp)   
 
       (expression
+        ("letmutable" (arbno identifier "=" expression ) "in" expression)
+        letmutable-exp)
+      (expression
        ("proc" "(" (arbno identifier) ")" expression)
        proc-exp)
 

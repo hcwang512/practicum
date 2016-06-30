@@ -14,24 +14,25 @@
   (define init-env 
     (lambda ()
       (extend-env 
-        'i (newref (num-val 1))
+        'i (newref (num-val 1)) #t
         (extend-env
-          'v (newref (num-val 5))
+          'v (newref (num-val 5)) #t
           (extend-env
-            'x (newref (num-val 10))
+            'x (newref (num-val 10)) #t
             (empty-env))))))
 
 ;;;;;;;;;;;;;;;; environment constructors and observers ;;;;;;;;;;;;;;;;
 
   (define apply-env
-    (lambda (env search-var)
+    (lambda (env search-var write?)
       (cases environment env
         (empty-env ()
           (eopl:error 'apply-env "No binding for ~s" search-var))
-        (extend-env (bvar bval saved-env)
+        (extend-env (bvar bval mutable? saved-env)
 	  (if (eqv? search-var bvar)
-	    bval
-	    (apply-env saved-env search-var)))
+        (if (or (not write?) mutable?) bval
+          (eopl:error 'apply-env "can not write to unmutable var"))
+	    (apply-env saved-env search-var write?)))
         (extend-env-rec* (p-names b-vars p-bodies saved-env)
           (let ((n (location search-var p-names)))
             ;; n : (maybe int)
@@ -42,12 +43,12 @@
                     (list-ref b-vars n)
                     (list-ref p-bodies n)
                     env)))
-              (apply-env saved-env search-var)))))))
+              (apply-env saved-env search-var write?)))))))
 
   (define extend-env*
-    (lambda (vars exps env)
+    (lambda (vars exps mutable? env)
       (if (null? vars) env
-        (extend-env* (cdr vars) (cdr exps) (extend-env (car vars) (car exps) env)))))
+        (extend-env* (cdr vars) (cdr exps) mutable? (extend-env (car vars) (car exps) mutable? env)))))
 
   ;; location : Sym * Listof(Sym) -> Maybe(Int)
   ;; (location sym syms) returns the location of sym in syms or #f is

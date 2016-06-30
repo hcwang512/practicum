@@ -39,7 +39,7 @@
 
         ;\commentbox{ (value-of (var-exp \x{}) \r) 
         ;              = (deref (apply-env \r \x{}))}
-        (var-exp (var) (deref (apply-env env var)))
+        (var-exp (var) (deref (apply-env env var #f)))
 
         ;\commentbox{\diffspec}
         (diff-exp (exp1 exp2)
@@ -69,8 +69,13 @@
         (let-exp (vars exps body)       
           (let ((v1 (map (lambda (ele) (value-of ele env)) exps)))
             (value-of body
-              (extend-env* vars (map (lambda (ele) (newref ele)) v1) env))))
+              (extend-env* vars (map (lambda (ele) (newref ele)) v1) #f env))))
         
+        (letmutable-exp (vars exps body)       
+          (let ((v1 (map (lambda (ele) (value-of ele env)) exps)))
+            (value-of body
+              (extend-env* vars (map (lambda (ele) (newref ele)) v1) #t env))))
+
         (proc-exp (vars body)
           (proc-val (procedure vars body env)))
 
@@ -96,7 +101,7 @@
         (assign-exp (var exp1)
           (begin
             (setref!
-              (apply-env env var)
+              (apply-env env var #t)
               (value-of exp1 env))
             (num-val 27)))
 
@@ -120,7 +125,7 @@
       (cases proc proc1
         (procedure (vars body saved-env)
           (let ((r (map (lambda (ele) (newref ele)) args)))
-            (let ((new-env (extend-env* vars r saved-env)))
+            (let ((new-env (extend-env* vars r #t saved-env)))
               (when (instrument-let)
                 (begin
                   (eopl:printf

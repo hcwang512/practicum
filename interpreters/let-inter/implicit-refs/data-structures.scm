@@ -65,6 +65,7 @@
     (extend-env 
       (bvar symbol?)
       (bval reference?)                 ; new for implicit-refs
+      (bmutable? boolean?)
       (saved-env environment?))
     (extend-env-rec*
       (proc-names (list-of symbol?))
@@ -78,9 +79,9 @@
     (lambda (env)
       (cases environment env
 	(empty-env () '())
-	(extend-env (sym val saved-env)
+	(extend-env (sym val mutable? saved-env)
 	  (cons
-	    (list sym val)              ; val is a denoted value-- a
+	    (list sym val mutable?)              ; val is a denoted value-- a
                                         ; reference. 
 	    (env->list saved-env)))
 	(extend-env-rec* (p-names b-vars p-bodies saved-env)
