@@ -137,5 +137,11 @@ let x=1 y=2 in -(x, y)" -1)
 
       (multi-argument-proc "
 let f=proc(x y) -(x, y) in (f 2 3)" -1)
+
+      (fluid-binding "
+let x = 11
+in let p = proc(y) -(y, x)
+in -(setdynamic x = 17 during (p 22), (p 13))" 3)
+
       ))
   )

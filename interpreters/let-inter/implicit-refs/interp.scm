@@ -98,6 +98,15 @@
                      (value-of-begins (car es) (cdr es)))))))
             (value-of-begins exp1 exps)))
 
+        (setdynamic-exp (var exp1 body)
+          (let ((arg (value-of exp1 env))
+                (original-v (deref (apply-env env var #f))))
+            (begin
+              (setref! (apply-env env var #f) arg)
+              (let ((re (value-of body env)))
+                (setref! (apply-env env var #f) original-v)
+                re))))
+
         (assign-exp (var exp1)
           (begin
             (setref!

@@ -61,6 +61,9 @@
         ("begin" expression (arbno ";" expression) "end")
         begin-exp)
 
+      (expression
+        ("setdynamic" identifier "=" expression "during" expression)
+        setdynamic-exp)
       ;; new for implicit-refs
 
       (expression
