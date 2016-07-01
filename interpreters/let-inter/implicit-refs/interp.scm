@@ -26,7 +26,45 @@
       (initialize-store!)
       (cases program pgm
         (a-program (exp1)
-          (value-of exp1 (init-env))))))
+          (result-of exp1 (init-env))))))
+
+  (define extend-unset-env*
+    (lambda (vars env)
+      (if (null? vars) env
+        (extend-unset-env* (cdr vars) (extend-env (car vars) (newref 1) #f env)))))
+
+  (define execute-while
+    (lambda (cond-exp body env)
+      (when (expval->bool (value-of cond-exp env))
+        (begin
+          (result-of body env)
+          (execute-while cond-exp body env))
+        )))
+
+  (define result-of
+    (lambda (stat env)
+      (cases statement stat
+        (assign-stat (var exp1)
+          (setref! (apply-env env var #f) (value-of exp1 env)))
+        (print-stat (exp1)
+            (eopl:printf "print: ~s" (value-of exp1 env)))
+        (declare-stat (vars body)
+          (result-of body (extend-unset-env* vars env)))
+        (while-stat (cond-exp body)
+          (execute-while cond-exp body env))
+        (if-stat (cond-exp stat1 stat2)
+          (if (expval->bool (value-of cond-exp env))
+            (result-of stat1 env)
+            (result-of stat2 env)))
+        (block-stat (stats)
+          (results-of stats env)))))
+
+  (define results-of
+    (lambda (stats env)
+      (when (not (null? stats))
+        (begin
+          (result-of (car stats) env)
+          (results-of (cdr stats) env)))))
 
   ;; value-of : Exp * Env -> ExpVal
   ;; Page: 118, 119

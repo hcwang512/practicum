@@ -19,7 +19,7 @@
       ))
   
   (define the-grammar
-    '((program (expression) a-program)
+    '((program (statement) a-program)
 
       (expression (number) const-exp)
       (expression
@@ -70,7 +70,23 @@
         ("set" identifier "=" expression)
         assign-exp)
 
-      ))
+      (statement
+        (identifier "=" expression)
+        assign-stat)
+      (statement
+        ("print" expression) print-stat)
+      (statement
+        ("{" (separated-list statement ";") "}") block-stat)
+      (statement
+        ("if" expression statement statement)
+        if-stat)
+      (statement
+        ("while" expression statement)
+        while-stat)
+      (statement
+        ("var" (separated-list identifier ",") ";" statement)
+        declare-stat)
+         ))
 
   ;;;;;;;;;;;;;;;; sllgen boilerplate ;;;;;;;;;;;;;;;;
   
