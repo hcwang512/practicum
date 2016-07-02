@@ -142,8 +142,33 @@
               (begin
                 (setright p v2)
                 (num-val 83)))))
+        (newarray-exp (count-exp val-exp)
+          (let ((count (expval->num (value-of count-exp env)))
+                (val (value-of val-exp env)))
+            (array-val (make-array count val))))
+        (arrayref-exp (exp1 exp2)
+          (let ((array (expval->array (value-of exp1 env)))
+                (pos (expval->num (value-of exp2 env))))
+            (deref (+ array pos))))
+        (arrayset!-exp (exp1 exp2 exp3)
+          (let ((array (expval->array (value-of exp1 env)))
+                (pos (expval->num (value-of exp2 env)))
+                (newval (value-of exp3 env)))
+            (setref! (+ array pos) newval)))
         )))
 
+
+  (define make-array
+    (lambda (count val)
+      (letrec ((make-helper 
+                 (lambda (number)
+                   (when (> number 0)
+                     (begin
+                       (newref val)
+                       (make-helper (- number 1)))))))
+        (let ((first (newref val)))
+          (make-helper (- count 1))
+          first))))
   ;; apply-procedure : Proc * ExpVal -> ExpVal
 ;;   (define apply-procedure
 ;;     (lambda (proc1 arg)

@@ -23,6 +23,8 @@
       (ref reference?))
     (mutpair-val
       (p mutpair?))
+    (array-val
+      (a reference?))
     )
 
 ;;; extractors:
@@ -56,6 +58,12 @@
       (cases expval v
 	(mutpair-val (ref) ref)
 	(else (expval-extractor-error 'mutable-pair v)))))
+
+  (define expval->array
+    (lambda (v)
+      (cases expval v
+             (array-val (a) a)
+             (else (expval-extractor-error 'array-val v)))))
 
   (define expval-extractor-error
     (lambda (variant value)

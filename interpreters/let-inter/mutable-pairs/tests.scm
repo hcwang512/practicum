@@ -174,6 +174,11 @@ in let f = proc (loc)
 in (f glo)"
         88)
 
+      (array-test1 "
+let arr = newarray(2, 100) in arrayref(arr, 1)" 100)
+
+      (array-test2 "
+let arr = newarray(2,1) in begin arrayset!(arr, 1, 10); arrayref(arr, 1) end"  10)
 
       ))
   )
