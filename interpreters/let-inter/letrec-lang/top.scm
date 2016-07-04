@@ -5,21 +5,19 @@
   ;; (run-all) will run both.
 
   (require (prefix-in interp- "top-interp.scm"))
-  ;(require (prefix-in registers- "top-interp-registers.scm"))
+  (require (prefix-in registers- "top-interp-registers.scm"))
   
-  ;(provide interp-run registers-run run-all)
-  (provide interp-run run-all)
+  (provide interp-run registers-run run-all)
 
   (define run-all
     (lambda ()
       (interp-run-all)
-      ;(registers-run-all)
-      ))
+      (registers-run-all)))
 
    ;;; interface for book test ;;;
   (provide test-all)
   (define (test-all) 
     (run-all))
 
-  (test-all)  
+  
   )
