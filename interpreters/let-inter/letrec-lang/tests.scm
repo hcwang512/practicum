@@ -117,5 +117,8 @@ list()" ())
 
       (test-list "
 list(1, 2, 3)" (1 2 3))
+
+      (test-multi-let "
+let x = 3 y = 4 in -(x,y)" -1)
       ))
   )

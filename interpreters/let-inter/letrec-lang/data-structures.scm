@@ -74,6 +74,8 @@
       (saved-cont continuation?))
     (let-exp-cont
       (var identifier?)
+      (vars (list-of identifier?))
+      (exps (list-of expression?))
       (body expression?)
       (saved-env environment?)
       (saved-cont continuation?))
