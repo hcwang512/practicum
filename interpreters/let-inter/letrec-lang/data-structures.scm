@@ -92,11 +92,14 @@
       (val1 expval?)
       (saved-cont continuation?))
     (rator-cont            
-      (rand expression?)
+      (rand (list-of expression?))
       (saved-env environment?)
       (saved-cont continuation?))
     (rand-cont             
       (val1 expval?)
+      (rand-vals (list-of expval?))
+      (rands (list-of expression?))
+      (saved-env environment?)
       (saved-cont continuation?))
     (null?-cont
       (saved-cont continuation?))
@@ -125,7 +128,7 @@
 
   (define-datatype proc proc?
     (procedure
-      (bvar symbol?)
+      (bvar (list-of symbol?))
       (body expression?)
       (env environment?)))
   
@@ -139,7 +142,7 @@
       (saved-env environment?))
     (extend-env-rec
       (p-name symbol?)
-      (b-var symbol?)
+      (b-vars (list-of symbol?))
       (p-body expression?)
       (saved-env environment?)))
 

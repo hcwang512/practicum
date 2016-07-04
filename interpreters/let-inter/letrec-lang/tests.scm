@@ -120,5 +120,8 @@ list(1, 2, 3)" (1 2 3))
 
       (test-multi-let "
 let x = 3 y = 4 in -(x,y)" -1)
+
+      (test-multi-args "
+let f = proc(x y) -(x, y) in (f 3 4)" -1)
       ))
   )

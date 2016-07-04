@@ -33,12 +33,12 @@
       (cases expression exp
         (const-exp (num) (apply-cont cont (num-val num)))
         (var-exp (var) (apply-cont cont (apply-env env var)))
-        (proc-exp (var body)
+        (proc-exp (vars body)
           (apply-cont cont 
-            (proc-val (procedure var body env))))
-        (letrec-exp (p-name b-var p-body letrec-body)
+            (proc-val (procedure vars body env))))
+        (letrec-exp (p-name b-vars p-body letrec-body)
           (value-of/k letrec-body
-            (extend-env-rec p-name b-var p-body env)
+            (extend-env-rec p-name b-vars p-body env)
             cont))
         (zero?-exp (exp1)
           (value-of/k exp1 env
@@ -66,9 +66,9 @@
           (if (null? exps)
             (apply-cont (list-cont exps env cont) exps)
             (value-of/k (car exps) env (list-cont (cdr exps) env cont))))
-        (call-exp (rator rand) 
+        (call-exp (rator rands) 
           (value-of/k rator env
-            (rator-cont rand env cont)))
+            (rator-cont rands env cont)))
    )))
 
   ;; apply-cont : Cont * ExpVal -> FinalAnswer
@@ -120,12 +120,14 @@
           (if (null? exps)
             (apply-cont saved-cont (vals->pair (append vals (list val))))
             (value-of/k (car exps) saved-env (list1-cont (cdr exps) (append vals (list val)) saved-env saved-cont))))
-        (rator-cont (rand saved-env saved-cont)
-          (value-of/k rand saved-env
-            (rand-cont val saved-cont)))
-        (rand-cont (val1 saved-cont)
-          (let ((proc (expval->proc val1)))
-            (apply-procedure/k proc val saved-cont)))
+        (rator-cont (rands saved-env saved-cont)
+          (value-of/k (car rands) saved-env
+            (rand-cont val '() (cdr rands) saved-env saved-cont)))
+        (rand-cont (val1 pre-rand-vals rands saved-env saved-cont)
+          (if (null? rands)
+            (let ((proc (expval->proc val1)))
+              (apply-procedure/k proc (append pre-rand-vals (list val)) saved-cont))
+            (value-of/k (car rands) saved-env (rand-cont val1 (append pre-rand-vals (list val)) (cdr rands) saved-env saved-cont))))
         )))
 
   (define vals->pair
@@ -135,12 +137,18 @@
 
   ;; apply-procedure/k : Proc * ExpVal * Cont -> FinalAnswer
   ;; Page 152 and 155
+  ;;
+  (define extend-env* 
+    (lambda (vars args env)
+      (if (null? vars) env
+        (extend-env* (cdr vars) (cdr args) (extend-env (car vars) (car args) env)))))
+
   (define apply-procedure/k
-    (lambda (proc1 arg cont)
+    (lambda (proc1 args cont)
       (cases proc proc1
-        (procedure (var body saved-env)
+        (procedure (vars body saved-env)
           (value-of/k body
-            (extend-env var arg saved-env)
+            (extend-env* vars args saved-env)
             cont)))))
   
   )
