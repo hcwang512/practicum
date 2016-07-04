@@ -111,5 +111,11 @@ cdr(cons(1 2))" (2))
 
       (test-null?-list "
 null?(cons(1 2))" #f)
+
+      (test-empty-list "
+list()" ())
+
+      (test-list "
+list(1, 2, 3)" (1 2 3))
       ))
   )

@@ -59,6 +59,8 @@
       (expression
         ("null?" "(" expression ")") null?-exp)
       (expression
+        ("list" "(" (separated-list expression ",")")") list-exp)
+      (expression
         ("letrec"
           identifier "(" identifier ")" "=" expression
            "in" expression)

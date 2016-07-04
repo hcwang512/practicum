@@ -62,6 +62,10 @@
           (value-of/k exp1 env (car-cont cont)))
         (cdr-exp (exp1)
           (value-of/k exp1 env (cdr-cont cont)))
+        (list-exp (exps)
+          (if (null? exps)
+            (apply-cont (list-cont exps env cont) exps)
+            (value-of/k (car exps) env (list-cont (cdr exps) env cont))))
         (call-exp (rator rand) 
           (value-of/k rator env
             (rator-cont rand env cont)))
@@ -109,6 +113,13 @@
         (cdr-cont (saved-cont)
           (let ((cdr-val (expval->cdr val)))
             (apply-cont saved-cont cdr-val)))
+        (list-cont (exps saved-env saved-cont)
+          (if (null? exps) (apply-cont saved-cont (emptylist-val))
+            (value-of/k (car exps) saved-env (list1-cont (cdr exps) (list val) saved-env saved-cont))))
+        (list1-cont (exps vals saved-env saved-cont)
+          (if (null? exps)
+            (apply-cont saved-cont (vals->pair (append vals (list val))))
+            (value-of/k (car exps) saved-env (list1-cont (cdr exps) (append vals (list val)) saved-env saved-cont))))
         (rator-cont (rand saved-env saved-cont)
           (value-of/k rand saved-env
             (rand-cont val saved-cont)))
@@ -116,6 +127,11 @@
           (let ((proc (expval->proc val1)))
             (apply-procedure/k proc val saved-cont)))
         )))
+
+  (define vals->pair
+    (lambda (vals)
+      (if (null? vals) (emptylist-val)
+        (pair-val (car vals) (vals->pair (cdr vals))))))
 
   ;; apply-procedure/k : Proc * ExpVal * Cont -> FinalAnswer
   ;; Page 152 and 155

@@ -108,6 +108,15 @@
     (car-cont
       (saved-cont continuation?))
     (cdr-cont
+      (saved-cont continuation?))
+    (list-cont
+      (exps (list-of expression?))
+      (saved-env environment?)
+      (saved-cont continuation?))
+    (list1-cont
+      (exps (list-of expression?))
+      (vals (list-of expval?))
+      (saved-env environment?)
       (saved-cont continuation?)))
 
 ;;;;;;;;;;;;;;;; procedures ;;;;;;;;;;;;;;;;
