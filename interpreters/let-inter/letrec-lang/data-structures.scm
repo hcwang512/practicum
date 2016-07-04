@@ -14,7 +14,11 @@
     (bool-val
       (boolean boolean?))
     (proc-val 
-      (proc proc?)))
+      (proc proc?))
+    (pair-val
+      (car expval?)
+      (cdr expval?))
+    (emptylist-val))
 
 ;;; extractors:
 
@@ -35,6 +39,24 @@
       (cases expval v
 	(proc-val (proc) proc)
 	(else (expval-extractor-error 'proc v)))))
+
+  (define expval->car
+    (lambda (v)
+      (cases expval v
+        (pair-val (car-val cdr-val) car-val)
+        (else (expval-extractor-error 'proc v)))))
+
+  (define expval->cdr
+    (lambda (v)
+      (cases expval v
+        (pair-val (car-val cdr-val) cdr-val)
+        (else (expval-extractor-error 'proc v)))))
+
+  (define expval-null?
+    (lambda (v)
+      (cases expval v
+        (emptylist-val () (bool-val #t))
+        (else (bool-val #f)))))
 
   (define expval-extractor-error
     (lambda (variant value)
@@ -73,6 +95,19 @@
       (saved-cont continuation?))
     (rand-cont             
       (val1 expval?)
+      (saved-cont continuation?))
+    (null?-cont
+      (saved-cont continuation?))
+    (cons1-cont
+      (exp2 expression?)
+      (env environment?)
+      (saved-cont continuation?))
+    (cons2-cont
+      (val1 expval?)
+      (saved-cont continuation?))
+    (car-cont
+      (saved-cont continuation?))
+    (cdr-cont
       (saved-cont continuation?)))
 
 ;;;;;;;;;;;;;;;; procedures ;;;;;;;;;;;;;;;;

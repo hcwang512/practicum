@@ -49,6 +49,16 @@
        call-exp)
 
       (expression
+        ("emptylist") emptylist-exp)
+      (expression
+        ("cons" "(" expression expression ")") cons-exp)
+      (expression
+        ("car" "(" expression ")") car-exp)
+      (expression
+        ("cdr" "(" expression ")") cdr-exp)
+      (expression
+        ("null?" "(" expression ")") null?-exp)
+      (expression
         ("letrec"
           identifier "(" identifier ")" "=" expression
            "in" expression)

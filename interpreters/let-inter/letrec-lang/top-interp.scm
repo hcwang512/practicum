@@ -39,11 +39,17 @@
       (cond
         ((number? sloppy-val) (num-val sloppy-val))
         ((boolean? sloppy-val) (bool-val sloppy-val))
+        ((list? sloppy-val) (list->expval sloppy-val))
         (else
          (eopl:error 'sloppy->expval 
                      "Can't convert sloppy value to expval: ~s"
                      sloppy-val)))))
     
+  (define list->expval
+    (lambda (li)
+      (if (null? li) (emptylist-val)
+        (pair-val (sloppy->expval (car li)) (list->expval (cdr li))))))
+
   ;; run-one : Sym -> ExpVal
 
   ;; (run-one sym) runs the test whose name is sym
