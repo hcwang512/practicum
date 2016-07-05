@@ -29,7 +29,7 @@
   (define trampoline
     (lambda (bounce)
       (if (expval? bounce) bounce
-        (trampoline (bounce)))))
+        (trampoline (apply-procedure/k/b bounce)))))
 
   ;; value-of/k : Exp * Env * Cont -> FinalAnswer
   ;; Page: 143--146, and 154
@@ -131,7 +131,7 @@
         (rand-cont (val1 pre-rand-vals rands saved-env saved-cont)
           (if (null? rands)
             (let ((proc (expval->proc val1)))
-              (apply-procedure/k proc (append pre-rand-vals (list val)) saved-cont))
+              (bounce-val proc (append pre-rand-vals (list val)) saved-cont))
             (value-of/k (car rands) saved-env (rand-cont val1 (append pre-rand-vals (list val)) (cdr rands) saved-env saved-cont))))
         )))
 
@@ -147,6 +147,15 @@
     (lambda (vars args env)
       (if (null? vars) env
         (extend-env* (cdr vars) (cdr args) (extend-env (car vars) (car args) env)))))
+
+  (define apply-procedure/k/b
+    (lambda (bo)
+      (cases bounce bo
+        (bounce-val (proc1 args cont)
+          (cases proc proc1
+            (procedure (vars body saved-env)
+              (value-of/k body
+                (extend-env* vars args saved-env) cont)))))))
 
   (define apply-procedure/k
     (lambda (proc1 args cont)

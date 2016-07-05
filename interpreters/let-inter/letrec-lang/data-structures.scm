@@ -146,4 +146,10 @@
       (p-body expression?)
       (saved-env environment?)))
 
+  (define-datatype bounce bounce?
+    (bounce-val
+      (proc1 proc?)
+      (args (list-of expval?))
+      (cont continuation?)))
+
 )
