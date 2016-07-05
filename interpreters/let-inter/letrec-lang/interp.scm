@@ -24,7 +24,12 @@
     (lambda (pgm)
       (cases program pgm
         (a-program (exp1)
-          (value-of/k exp1 (init-env) (end-cont))))))  
+          (trampoline (value-of/k exp1 (init-env) (end-cont)))))))  
+
+  (define trampoline
+    (lambda (bounce)
+      (if (expval? bounce) bounce
+        (trampoline (bounce)))))
 
   ;; value-of/k : Exp * Env * Cont -> FinalAnswer
   ;; Page: 143--146, and 154
@@ -145,11 +150,12 @@
 
   (define apply-procedure/k
     (lambda (proc1 args cont)
-      (cases proc proc1
-        (procedure (vars body saved-env)
-          (value-of/k body
-            (extend-env* vars args saved-env)
-            cont)))))
+      (lambda ()
+          (cases proc proc1
+            (procedure (vars body saved-env)
+              (value-of/k body
+                (extend-env* vars args saved-env)
+                cont))))))
   
   )
   
