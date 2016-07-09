@@ -45,6 +45,13 @@
       (cont continuation?))
     (raise1-cont
       (saved-cont continuation?))
+    (div1-cont
+      (exp2 expression?)
+      (saved-env environment?)
+      (saved-cont continuation?))
+    (div2-cont
+      (val1 expval?)
+      (saved-cont continuation?))
     )
 
 ;;;;;;;;;;;;;;;; the interpreter ;;;;;;;;;;;;;;;;
@@ -109,6 +116,10 @@
           (value-of/k exp1 env
             (try-cont var handler-exp env cont)))
 
+        (div-exp (exp1 exp2)
+          (value-of/k exp1 env
+            (div1-cont exp2 env cont)))
+
         (raise-exp (exp1)
           (value-of/k exp1 env
             (raise1-cont cont))))))
@@ -126,6 +137,14 @@
                 (n2 (expval->num val)))
             (apply-cont saved-cont
               (num-val (- n1 n2)))))
+        (div1-cont (exp2 saved-env saved-cont)
+          (value-of/k exp2 saved-env (div2-cont val saved-cont)))
+        (div2-cont (val1 saved-cont)
+          (let ((n1 (expval->num val1))
+                (n2 (expval->num val)))
+            (if (= 0 n2) (apply-handler val saved-cont)
+              (apply-cont saved-cont (num-val (/ n1 n2))))))
+
         (unop-arg-cont (unop cont)
           (apply-cont cont
             (apply-unop unop val)))
@@ -175,6 +194,10 @@
           (apply-handler val saved-cont))
         (raise1-cont (cont)
           (apply-handler val cont))
+        (div1-cont (exp2 saved-env saved-cont)
+          (apply-handler val saved-cont))
+        (div2-cont (val1 saved-cont)
+          (apply-handler val saved-cont))
         )))
 
 

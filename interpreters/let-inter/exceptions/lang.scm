@@ -73,6 +73,10 @@
         ("raise" expression)
         raise-exp)
 
+      (expression
+        ("/" "(" expression "," expression ")")
+        div-exp)
+
       (unary-op ("null?") null?-unop)
       (unary-op ("car")   car-unop)
       (unary-op ("cdr" )  cdr-unop)

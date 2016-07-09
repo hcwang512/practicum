@@ -233,7 +233,17 @@
        in ((index 5) list(2, 3))"
       -1)
 
+    (test-for-div1
+        "/(2, -(2,1))" 2)
+
+    (test-for-unhandled-div
+      "/(2, 0)" error)
+
+    (test-for-handle-div-zero
+      "try /(2, 0) catch (m) m" 0)
+
     ))
 
+   
 
   )
