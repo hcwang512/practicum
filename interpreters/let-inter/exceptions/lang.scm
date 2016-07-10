@@ -74,6 +74,10 @@
         raise-exp)
 
       (expression
+        ("resume-raise" expression)
+        resume-raise-exp)
+
+      (expression
         ("/" "(" expression "," expression ")")
         div-exp)
 

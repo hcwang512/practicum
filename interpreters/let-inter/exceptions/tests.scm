@@ -139,6 +139,10 @@
       "try -(1, raise 44) catch (m) m"
       44)
 
+    (simple-failure-resume
+      "try -(1, resume-raise 44) catch (m) m"
+      -43)
+
     (uncaught-exception
       "-(22, raise 13)"
       error)
@@ -149,12 +153,25 @@
           catch (m) 44"
       44)
 
+    (exceptions-have-dynamic-scope-1-resume 
+      "let f = proc (x) -(x, -(resume-raise 99, 1))   % no handler in lexical scope!
+       in try (f 33) 
+          catch (m) -(m, 55)"
+      -10)
+
     (handler-in-non-tail-recursive-position 
       "let f = proc (x) -(x, -(raise 99, 1))   % no handler in lexical scope!
        in -(try (f 33) 
             catch (m) -(m,55), 
             1)"
       43)
+
+    (handler-in-non-tail-recursive-position-resume 
+      "let f = proc (x) -(x, -(resume-raise 99, 1))   % no handler in lexical scope!
+       in -(try (f 33) 
+            catch (m) -(m, 55), 
+            4)"
+      -14)
 
     (propagate-error-1
       "try try -(raise 23, 11)

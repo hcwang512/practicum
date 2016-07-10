@@ -45,6 +45,8 @@
       (cont continuation?))
     (raise1-cont
       (saved-cont continuation?))
+    (resume-raise-cont
+      (saved-cont continuation?))
     (div1-cont
       (exp2 expression?)
       (saved-env environment?)
@@ -120,6 +122,10 @@
           (value-of/k exp1 env
             (div1-cont exp2 env cont)))
 
+        (resume-raise-exp (exp1)
+          (value-of/k exp1 env
+            (resume-raise-cont cont)))
+
         (raise-exp (exp1)
           (value-of/k exp1 env
             (raise1-cont cont))))))
@@ -161,6 +167,8 @@
         ;; the body of the try finished normally-- don't evaluate the handler
         (try-cont (var handler-exp saved-env saved-cont)
           (apply-cont saved-cont val))
+        (resume-raise-cont (saved-cont)
+          (resume-apply-handler val saved-cont saved-cont))
         ;; val is the value of the argument to raise
         (raise1-cont (saved-cont)
           ;; we put the short argument first to make the trace more readable.
@@ -194,11 +202,48 @@
           (apply-handler val saved-cont))
         (raise1-cont (cont)
           (apply-handler val cont))
+        (resume-raise-cont (cont)
+          (apply-handler val cont))
         (div1-cont (exp2 saved-env saved-cont)
           (apply-handler val saved-cont))
         (div2-cont (val1 saved-cont)
           (apply-handler val saved-cont))
         )))
+
+  (define resume-apply-handler
+    (lambda (val cont cont-cont)
+      (cases continuation cont
+        ;; interesting cases
+        (try-cont (var handler-exp saved-env saved-cont)
+          (value-of/k handler-exp
+            (extend-env var val saved-env)
+            cont-cont))
+
+        (end-cont () (eopl:error 'resume-apply-handler "uncaught exception!"))
+
+        ;; otherwise, just look for the handler...
+        (diff1-cont (exp2 saved-env saved-cont)
+          (resume-apply-handler val saved-cont cont-cont))
+        (diff2-cont (val1 saved-cont)
+          (resume-apply-handler val saved-cont cont-cont))
+        (if-test-cont (exp2 exp3 env saved-cont)
+          (resume-apply-handler val saved-cont cont-cont))
+        (unop-arg-cont (unop saved-cont)
+          (resume-apply-handler val saved-cont cont-cont))
+        (rator-cont (rand saved-env saved-cont)
+          (resume-apply-handler val saved-cont cont-cont))
+        (rand-cont (val1 saved-cont)
+          (resume-apply-handler val saved-cont cont-cont))
+        (raise1-cont (cont)
+          (resume-apply-handler val cont cont-cont))
+        (resume-raise-cont (cont)
+          (resume-apply-handler val cont cont-cont))
+        (div1-cont (exp2 saved-env saved-cont)
+          (resume-apply-handler val saved-cont cont-cont))
+        (div2-cont (val1 saved-cont)
+          (resume-apply-handler val saved-cont cont-cont))
+        )))
+
 
 
   ;; apply-procedure : procedure * expval * cont -> final-expval
