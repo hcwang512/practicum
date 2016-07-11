@@ -55,7 +55,7 @@
 
 
   ;; (stop-after-first-error #t)
-   (run-all 5)
+   (run-all 3)
   ;; (run-one 1000 'producer-consumer)
 
   )

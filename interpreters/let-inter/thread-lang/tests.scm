@@ -141,7 +141,7 @@ let f = proc (x) proc (y)
                    -(x,y)
                   end
 in ((f 44) 33)"
-	12)
+    12)
 
       (begin-1 "begin 33 end" 33)
 
@@ -177,7 +177,7 @@ in let
                 waitloop(k) = if zero?(k) 
                           then set buffer = n
                           else begin
-                                       print(-(k,-100));
+                                       print(-(k,-200));
                                        yield();
                                        (waitloop -(k,1))
                                end
@@ -185,7 +185,7 @@ in let
 in let consumer = proc (d) letrec
                      busywait (k) = if zero?(buffer)
                                    then begin
-                                         print(-(k,-200));
+                                         print(-(k,-100));
                                          yield();
                                          (busywait -(k,-1))
                                         end
@@ -353,6 +353,29 @@ in
 ;;       ;; 3
 ;;       ;; 999
 ;;       ;; > 
+;;
+      (safe-ctr-main
+        "let mut = mutex() in
+        let x = 0 in
+        let ctr = 
+              proc (n) proc (d)
+                  begin
+                   wait(mut);
+                   print(n); 
+                   print(x);
+                   set x = -(x,-1);
+                   print(n); 
+                   print(x);
+                   signal(mut)
+                  end
+   in begin
+       spawn((ctr 100));
+       spawn((ctr 200));
+       spawn((ctr 300));
+       wait(mut);
+       x
+      end"
+        3)
 
       (producer-consumer-with-mutex "
 let buffer = 0 
