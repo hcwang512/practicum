@@ -5,18 +5,20 @@
   ;; time slice.
 
    ;;; interface for book test ;;;
-  (provide test-all)
-  (define (test-all) 
-    (run-all 50))
 
   (require "drscheme-init.scm")
   (require "data-structures.scm")   
   (require "lang.scm")                  ; for scan&parse
   (require "interp.scm")                ; for value-of-program
   (require "tests.scm")                 ; for test-list
+  (require "scheduler.scm")
   
+  (provide (all-defined-out))
   ;;;;;;;;;;;;;;;; interface to test harness ;;;;;;;;;;;;;;;;
   
+  (define (test-all) 
+    (run-all 50))
+
   (define run
     (lambda (timeslice string)
       (value-of-program timeslice (scan&parse string))))

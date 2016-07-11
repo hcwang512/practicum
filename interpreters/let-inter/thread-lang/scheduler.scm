@@ -11,6 +11,8 @@
     
     time-expired?
     decrement-timer!
+    the-time-remaining
+    the-max-time-slice
 
     place-on-ready-queue!
     run-next-thread
@@ -41,9 +43,9 @@
   ;; place-on-ready-queue! : Thread -> Unspecified
   ;; Page: 184  
   (define place-on-ready-queue!
-    (lambda (th)
+    (lambda (timer-remain th)
       (set! the-ready-queue
-        (enqueue the-ready-queue th))))
+        (enqueue the-ready-queue th timer-remain))))
 
   ;; run-next-thread : () -> FinalAnswer
   ;; Page: 184    
@@ -54,8 +56,8 @@
         (dequeue the-ready-queue
           (lambda (first-ready-thread other-ready-threads)
             (set! the-ready-queue other-ready-threads)            
-            (set! the-time-remaining the-max-time-slice) 
-            (first-ready-thread)
+            (set! the-time-remaining (cadr first-ready-thread)) 
+            ((car first-ready-thread))
             )))))
 
   ;; set-final-answer! : ExpVal -> Unspecified

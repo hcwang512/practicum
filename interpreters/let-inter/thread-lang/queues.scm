@@ -17,8 +17,8 @@
   (define empty? null?)
 
   (define enqueue
-    (lambda (q val)
-      (append q (list val))))
+    (lambda (q val1 val2)
+      (append q (list (list val1 val2)))))
 
   (define dequeue
     (lambda (q f)

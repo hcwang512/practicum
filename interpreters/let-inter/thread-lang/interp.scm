@@ -97,7 +97,7 @@
 
         (yield-exp ()
           (place-on-ready-queue!
-            (lambda () (apply-cont cont (num-val 99))))
+            the-time-remaining (lambda () (apply-cont cont (num-val 99))))
           (run-next-thread))
 
         (mutex-exp ()
@@ -123,7 +123,8 @@
     (lambda (cont val)
       (if (time-expired?)
         (begin
-          (place-on-ready-queue!
+          (place-on-ready-queue! 
+            the-max-time-slice
             (lambda () (apply-cont cont val)))
           (run-next-thread))
         (begin
@@ -164,6 +165,7 @@
             (spawn-cont (saved-cont)
               (let ((proc1 (expval->proc val)))
                 (place-on-ready-queue!
+                  the-max-time-slice 
                   (lambda ()
                     (apply-procedure proc1
                       (num-val 28)

@@ -32,7 +32,7 @@
           (cond
             ((deref ref-to-closed?)                  
              (setref! ref-to-wait-queue
-               (enqueue (deref ref-to-wait-queue) th))
+               (enqueue (deref ref-to-wait-queue) th the-max-time-slice))
              (run-next-thread))
             (else
               (setref! ref-to-closed? #t)
@@ -52,7 +52,7 @@
                 (dequeue wait-queue
                   (lambda (first-waiting-th other-waiting-ths)
                     (place-on-ready-queue!
-                      first-waiting-th)
+                      the-max-time-slice (car first-waiting-th))
                     (setref!
                       ref-to-wait-queue
                       other-waiting-ths)))))
