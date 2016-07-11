@@ -96,9 +96,10 @@
             (spawn-cont cont)))
 
         (yield-exp ()
-          (place-on-ready-queue!
-            the-time-remaining (lambda () (apply-cont cont (num-val 99))))
-          (run-next-thread))
+          (begin
+            (place-on-ready-queue!
+              the-time-remaining (cont-thread cont (num-val 99)))
+            (apply-thread (run-next-thread))))
 
         (mutex-exp ()
           (apply-cont cont (mutex-val (new-mutex))))  
@@ -125,8 +126,8 @@
         (begin
           (place-on-ready-queue! 
             the-max-time-slice
-            (lambda () (apply-cont cont val)))
-          (run-next-thread))
+            (cont-thread cont val))
+          (apply-thread (run-next-thread)))
         (begin
 
           (decrement-timer!)
@@ -135,10 +136,10 @@
 
             (end-main-thread-cont ()
               (set-final-answer! val)
-              (run-next-thread))
+              (apply-thread (run-next-thread)))
   
             (end-subthread-cont ()
-              (run-next-thread))
+              (apply-thread (run-next-thread)))
                
             (diff1-cont (exp2 saved-env saved-cont)
               (value-of/k exp2 saved-env (diff2-cont val saved-cont)))
@@ -163,24 +164,24 @@
                 (apply-cont cont (num-val 26))))
 
             (spawn-cont (saved-cont)
-              (let ((proc1 (expval->proc val)))
-                (place-on-ready-queue!
-                  the-max-time-slice 
-                  (lambda ()
-                    (apply-procedure proc1
+                (begin
+                  (place-on-ready-queue!
+                    the-max-time-slice 
+                    (proc-thread (expval->proc val)
                       (num-val 28)
-                      (end-subthread-cont))))
-              (apply-cont saved-cont (num-val 73))))
+                      (end-subthread-cont)))
+                  (apply-cont saved-cont (num-val 73))))
 
             (wait-cont (saved-cont)
-              (wait-for-mutex
-                (expval->mutex val)
-                (lambda () (apply-cont saved-cont (num-val 52)))))
+              (let ((th (cont-thread saved-cont (num-val 52))))
+                (apply-thread (wait-for-mutex (expval->mutex val) th))
+                  ))
 
             (signal-cont (saved-cont)
-              (signal-mutex
-                (expval->mutex val)
-                (lambda () (apply-cont saved-cont (num-val 53)))))
+              (apply-thread 
+                (signal-mutex
+                  (expval->mutex val)
+                  (cont-thread saved-cont (num-val 53)))))
 
             (unop-arg-cont (unop1 cont)
               (apply-unop unop1 val cont))
@@ -194,6 +195,16 @@
           (value-of/k body
             (extend-env var (newref arg) saved-env)
             cont)))))
+
+  (define apply-thread
+    (lambda (th)
+      (if (thread? th)
+      (cases thread th
+        (cont-thread (cont val)
+          (apply-cont cont val))
+        (proc-thread (proc1 val1 cont)
+          (apply-procedure proc1 val1 cont)))
+         th)))
 
   (define apply-unop
     (lambda (unop1 arg cont)

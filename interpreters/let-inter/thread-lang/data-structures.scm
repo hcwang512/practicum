@@ -84,7 +84,16 @@
             "%"             ; this can't appear in an input identifier
             (number->string sn))))))
 
-;;;;;;;;;;;;;;;; continuations ;;;;;;;;;;;;;;;;
+  (define-datatype thread thread?
+    (cont-thread
+      (cont continuation?)
+      (val expval?))
+    (proc-thread
+      (proc proc?)
+      (val expval?)
+      (cont continuation?)))
+
+  ;;;;;;;;;;;;;;;; continuations ;;;;;;;;;;;;;;;;
 
 
   (define-datatype continuation continuation?

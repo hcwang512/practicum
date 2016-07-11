@@ -57,7 +57,7 @@
           (lambda (first-ready-thread other-ready-threads)
             (set! the-ready-queue other-ready-threads)            
             (set! the-time-remaining (cadr first-ready-thread)) 
-            ((car first-ready-thread))
+            (car first-ready-thread)
             )))))
 
   ;; set-final-answer! : ExpVal -> Unspecified
