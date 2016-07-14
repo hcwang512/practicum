@@ -56,7 +56,7 @@
     (lambda (exps builder)
       (let cps-of-rest ((exps exps))
         ;; cps-of-rest : Listof(InpExp) -> TfExp
-        (let ((pos (list-index
+        (let ((pos (last-index
                      (lambda (exp)
                        (not (inp-exp-simple? exp)))
                      exps)))
@@ -234,6 +234,20 @@
             (symbol->string identifier)
             "%"             ; this can't appear in an input identifier
             (number->string sn))))))
+
+  ;; We can use last to get the last element of list in racket, but there is no such function in chichen
+  ;; So we need to define one new
+  (define (last-ele lst)
+    (list-ref lst (- (length lst) 1)))
+
+  (define (all-but-last lst)
+    (if (null? (cdr lst)) '() (cons (car lst) (all-but-last (cdr lst)))))
+
+  (define (last-index pred lst)
+    (cond
+      ((null? lst) #f)
+      ((pred (last-ele lst)) (- (length lst) 1))
+      (else (last-index pred (all-but-last lst)))))
 
   ;; list-set : SchemeList * Int * SchemeVal -> SchemeList
   ;; returns a list lst1 that is just like lst, except that 
