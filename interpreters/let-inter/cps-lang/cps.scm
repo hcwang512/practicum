@@ -142,7 +142,10 @@
   ;; Page: 214
   (define make-send-to-cont
     (lambda (cont bexp)
-      (cps-call-exp cont (list bexp))))
+      (cases simple-expression cont
+        (cps-proc-exp (vars body)
+          (cps-let-exp (car vars) bexp body))
+      (else (cps-call-exp cont (list bexp))))))
 
   ;; cps-of-zero?-exp : InpExp * SimpleExp -> TfExp
   ;; Page: 222
