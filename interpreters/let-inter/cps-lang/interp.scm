@@ -64,10 +64,10 @@
         (simple-exp->exp (simple)
           (apply-cont cont
             (value-of-simple-exp simple env)))
-        (cps-let-exp (var rhs body)
-         (let ((val (value-of-simple-exp rhs env)))
+        (cps-let-exp (vars rhs body)
+         (let ((vals (map (lambda (ele) (value-of-simple-exp ele env)) rhs)))
             (value-of/k body
-              (extend-env* (list var) (list val) env)
+              (extend-env* vars vals env)
               cont)))
         (cps-letrec-exp (p-names b-varss p-bodies letrec-body)
           (value-of/k letrec-body

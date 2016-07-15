@@ -36,8 +36,8 @@
           (cps-of-sum-exp exps cont))
         (if-exp (exp1 exp2 exp3)
           (cps-of-if-exp exp1 exp2 exp3 cont))
-        (let-exp (var exp1 body)
-          (cps-of-let-exp var exp1 body cont))
+        (let-exp (vars exps body)
+          (cps-of-let-exp vars exps body cont))
         (letrec-exp (ids bidss proc-bodies body)
           (cps-of-letrec-exp ids bidss proc-bodies body cont))
         (call-exp (rator rands)
@@ -144,7 +144,7 @@
     (lambda (cont bexp)
       (cases simple-expression cont
         (cps-proc-exp (vars body)
-          (cps-let-exp (car vars) bexp body))
+          (cps-let-exp vars (list bexp) body))
       (else (cps-call-exp cont (list bexp))))))
 
   ;; cps-of-zero?-exp : InpExp * SimpleExp -> TfExp
@@ -201,11 +201,11 @@
   ;; cps-of-let-exp : Var * InpExp * InpExp * SimpleExp -> TfExp
   ;; Page: 222
   (define cps-of-let-exp
-    (lambda (id rhs body k-exp)
-      (cps-of-exps (list rhs)
+    (lambda (ids rhs body k-exp)
+      (cps-of-exps rhs
         (lambda (new-rands)
-          (cps-let-exp id 
-            (car new-rands)
+          (cps-let-exp ids 
+            new-rands
             (cps-of-exp body k-exp))))))
 
   ;; cps-of-letrec-exp :

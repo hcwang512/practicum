@@ -50,7 +50,7 @@
       (expression (identifier) var-exp)
 
       (expression
-       ("let" identifier "=" expression "in" expression)
+       ("let" (arbno identifier "=" expression) "in" expression)
        let-exp)   
 
       (expression
