@@ -187,9 +187,16 @@
     (lambda (exp1 exp2 exp3 k-exp)
       (cps-of-exps (list exp1)
         (lambda (new-rands)
-          (cps-if-exp (car new-rands)
-            (cps-of-exp exp2 k-exp)
-            (cps-of-exp exp3 k-exp))))))
+          (let ((var (fresh-identifier 'var)))
+          (cps-call-exp
+            (cps-proc-exp (list var)
+              (cps-if-exp (car new-rands)
+              (cps-of-exp exp2 (cps-var-exp var))
+              (cps-of-exp exp3 (cps-var-exp var))))
+            (list k-exp)))))))
+          ;(cps-if-exp (car new-rands)
+            ;(cps-of-exp exp2 k-exp)
+            ;(cps-of-exp exp3 k-exp))))))
 
   ;; cps-of-let-exp : Var * InpExp * InpExp * SimpleExp -> TfExp
   ;; Page: 222
