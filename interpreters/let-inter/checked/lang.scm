@@ -45,6 +45,9 @@
        proc-exp)
 
       (expression
+        ("set" identifier "=" expression)
+        set-exp)
+      (expression
        ("(" expression (arbno expression) ")")
        call-exp)
 

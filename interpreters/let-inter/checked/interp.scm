@@ -57,6 +57,8 @@
 	  (proc-val
 	    (procedure bvar body env)))
 
+        (set-exp (var exp1)
+          (eopl:printf "not defined yet"))
         (call-exp (rator rand)          
           (let ((proc (expval->proc (value-of rator env)))
                 (arg  (value-of rand env)))

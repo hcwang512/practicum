@@ -251,6 +251,11 @@ in letrec
         int)
 
 
+      (set-check-test 
+        "set x = 1" int)
+
+      (set-check-test-2
+        "set x = zero?(-(3,2))" bool)
 
       ))
   )

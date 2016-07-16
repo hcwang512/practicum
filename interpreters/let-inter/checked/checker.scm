@@ -86,6 +86,9 @@
                     (extend-tenv* vars var-types tenv))))
             (proc-type var-types result-type)))
 
+        (set-exp (var exp1)
+          (type-of exp1 tenv))
+
         ;; \commentbox{\apprule}
         (call-exp (rator rands) 
           (let ((rator-type (type-of rator tenv))
