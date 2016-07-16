@@ -12,6 +12,13 @@
       (when (not (equal? ty1 ty2))
         (report-unequal-types ty1 ty2 exp))))
 
+  (define check-equal-type*!
+    (lambda (ty1s ty2s exps)
+      (when (not (null? ty1s))
+        (begin
+          (check-equal-type! (car ty1s) (car ty2s) (car exps))
+          (check-equal-type*! (cdr ty1s) (cdr ty2s) (cdr exps))))))
+
   ;; report-unequal-types : Type * Type * Exp -> Unspecified
   ;; Page: 243
   (define report-unequal-types
@@ -67,45 +74,52 @@
             ty2))
 
         ;; \commentbox{\letrule}
-        (let-exp (var exp1 body)
-          (let ((exp1-type (type-of exp1 tenv)))
+        (let-exp (vars exps body)
+          (let ((exps-type (map (lambda (ele) (type-of ele tenv)) exps)))
             (type-of body
-              (extend-tenv var exp1-type tenv))))
+              (extend-tenv* vars exps-type tenv))))
 
         ;; \commentbox{\procrulechurch}
-        (proc-exp (var var-type body)
+        (proc-exp (vars var-types body)
           (let ((result-type
                   (type-of body
-                    (extend-tenv var var-type tenv))))
-            (proc-type var-type result-type)))
+                    (extend-tenv* vars var-types tenv))))
+            (proc-type var-types result-type)))
 
         ;; \commentbox{\apprule}
-        (call-exp (rator rand) 
+        (call-exp (rator rands) 
           (let ((rator-type (type-of rator tenv))
-                (rand-type  (type-of rand tenv)))
+                (rand-types  (map (lambda (ele) (type-of ele tenv)) rands)))
             (cases type rator-type
-              (proc-type (arg-type result-type)
+              (proc-type (arg-types result-type)
                 (begin
-                  (check-equal-type! arg-type rand-type rand)
+                  (check-equal-type! arg-types rand-types rands)
                   result-type))
               (else
                 (report-rator-not-a-proc-type rator-type rator)))))
 
         ;; \commentbox{\letrecrule}
-        (letrec-exp (p-result-type p-name b-var b-var-type p-body
+        (letrec-exp (p-result-types p-names b-varss b-var-typess p-bodys
                       letrec-body)
           (let ((tenv-for-letrec-body
-                  (extend-tenv p-name
-                    (proc-type b-var-type p-result-type)
+                  (extend-tenv-rec p-names
+                    b-varss b-var-typess p-bodys p-result-types
                     tenv)))
-            (let ((p-body-type 
-                    (type-of p-body
-                      (extend-tenv b-var b-var-type
-                        tenv-for-letrec-body)))) 
-              (check-equal-type!
-                p-body-type p-result-type p-body)
+            (let ((p-body-types 
+                    (map (lambda (i) (type-of (list-ref p-bodys i)
+                      (extend-tenv* (list-ref b-varss i) (list-ref b-var-typess i)
+                        tenv-for-letrec-body))) (range (length p-bodys)))))
+              (check-equal-type*!
+                p-body-types p-result-types p-bodys)
               (type-of letrec-body tenv-for-letrec-body)))))))
     
+  (define range
+    (lambda (n)
+      (define (helper count acc)
+        (if (<= count n) acc
+          (helper (+ 1 count) (cons count acc))))
+      (helper 0 '())))
+
   (define report-rator-not-a-proc-type
     (lambda (rator-type rator)
       (eopl:error 'type-of-expression
@@ -120,10 +134,22 @@
     (extended-tenv-record
       (sym symbol?)
       (type type?)
+      (tenv type-environment?))
+    (extended-tenv-record-rec
+      (p-names (list-of symbol?))
+      (b-varss (list-of (list-of symbol?)))
+      (b-typess (list-of (list-of type?)))
+      (proc-bodys (list-of expression?))
+      (p-result-types (list-of type?))
       (tenv type-environment?)))
     
   (define empty-tenv empty-tenv-record)
   (define extend-tenv extended-tenv-record)
+  (define extend-tenv-rec extended-tenv-record-rec)
+  (define extend-tenv*
+    (lambda (vars types tenv)
+      (if (null? vars) tenv
+        (extend-tenv* (cdr vars) (cdr types) (extend-tenv (car vars) (car types) tenv)))))
     
   (define apply-tenv 
     (lambda (tenv sym)
@@ -133,8 +159,23 @@
         (extended-tenv-record (sym1 val1 old-env)
           (if (eqv? sym sym1) 
             val1
-            (apply-tenv old-env sym))))))
-  
+            (apply-tenv old-env sym)))
+        (extended-tenv-record-rec (p-names b-varss b-typess p-bodys p-result-types old-env)
+          (letrec ((search (lambda (proc-names proc-types var-typess)
+                          (cond
+                            ((null? proc-names) (apply-tenv old-env sym))
+                            ((eqv? sym (car proc-names)) (proc-type (car var-typess) (car proc-types)))
+                            (else (search (cdr proc-names) (cdr proc-types) (cdr var-typess)))))))
+            (search p-names p-result-types b-typess))))))
+
+  (define find-in-lists 
+    (lambda (varss typess sym)
+      (cond
+        ((null? varss) #f)
+        ((null? (car varss)) (find-in-lists (cdr varss) (cdr typess) sym))
+        ((eqv? (caar varss) sym) (caar typess))
+        (else (find-in-lists (cons (cdar varss) (cdr varss)) (cons (cdar typess) (cdr typess)) sym)))))
+
   (define init-tenv
     (lambda ()
       (extend-tenv 'x (int-type) 

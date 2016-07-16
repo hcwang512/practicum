@@ -37,20 +37,20 @@
       (expression (identifier) var-exp)
 
       (expression
-       ("let" identifier "=" expression "in" expression)
+       ("let" (arbno identifier "=" expression) "in" expression)
        let-exp)   
 
       (expression
-       ("proc" "(" identifier ":" type ")" expression)
+       ("proc" "(" (arbno identifier ":" type) ")" expression)
        proc-exp)
 
       (expression
-       ("(" expression expression ")")
+       ("(" expression (arbno expression) ")")
        call-exp)
 
       (expression
         ("letrec"
-          type identifier "(" identifier ":" type ")" "=" expression
+          (arbno type identifier "(" (arbno identifier ":" type) ")" "=" expression)
            "in" expression)
         letrec-exp)
 
@@ -63,7 +63,7 @@
        bool-type)
       
       (type
-       ("(" type "->" type ")")
+       ("(" (arbno type) "->" type ")")
        proc-type)
       
       ))
@@ -90,9 +90,9 @@
       (cases type ty
         (int-type () 'int)
         (bool-type () 'bool)
-        (proc-type (arg-type result-type)
+        (proc-type (arg-types result-type)
           (list
-            (type-to-external-form arg-type)
+            (map (lambda (ele) (type-to-external-form ele)) arg-types)
             '->
             (type-to-external-form result-type))))))
 

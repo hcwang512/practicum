@@ -183,9 +183,9 @@ in (double 3)"
 
       ;; tests of expressions that produce procedures
 
-      (build-a-proc-typed "proc (x : int) -(x,1)" (int -> int))
+      (build-a-proc-typed "proc (x : int) -(x,1)" ((int) -> int))
 
-      (build-a-proc-typed-2 "proc (x : int) zero?(-(x,1))" (int -> bool))
+      (build-a-proc-typed-2 "proc (x : int) zero?(-(x,1))" ((int) -> bool))
       
       (bind-a-proc-typed
         "let f = proc (x : int) -(x,1) in (f 4)"
@@ -193,11 +193,11 @@ in (double 3)"
 
       (bind-a-proc-return-proc
         "let f = proc (x : int) -(x,1) in f"
-        (int -> int))
+        ((int) -> int))
 
       (type-a-ho-proc-1
         "proc(f : (int -> bool)) (f 3)"
-        ((int  -> bool) -> bool))
+        ((((int)  -> bool)) -> bool))
 
       (type-a-ho-proc-2
         "proc(f : (bool -> bool)) (f 3)"
@@ -205,11 +205,11 @@ in (double 3)"
 
       (apply-a-ho-proc
         "proc (x : int) proc (f : (int -> bool)) (f x)"
-        (int -> ((int -> bool) -> bool)))
+        ((int) -> ((((int) -> bool)) -> bool)))
 
       (apply-a-ho-proc-2
         "proc (x : int) proc (f : (int -> (int -> bool))) (f x)"
-        (int -> ((int -> (int -> bool)) -> (int -> bool))) )
+        ((int) -> ((((int) -> ((int) -> bool))) -> ((int) -> bool))) )
 
       (apply-a-ho-proc-3
         "proc (x : int) proc (f : (int -> (int -> bool))) (f zero?(x))"
@@ -241,7 +241,7 @@ let times = proc (x : int) proc (y : int) -(x,y)    % not really times
 in letrec 
      int fact(x : int) = if zero?(x) then 1 else ((times x) (fact -(x,1)))
    in fact"
-        (int -> int))
+        ((int) -> int))
 
       (letrec-apply-fact "
 let times = proc (x : int) proc (y : int) -(x,y)    % not really times
